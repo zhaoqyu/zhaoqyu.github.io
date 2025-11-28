@@ -1,74 +1,67 @@
-(function($){
-  // Caption
-  $('.article-entry, .article-inner').each(function(i){
-    $(this).find('img').each(function(){
-      if ($(this).parent().hasClass('fancybox') || $(this).parent().is('a')) return;
+// declaraction of document.ready() function.
+(function () {
+    var ie = !!(window.attachEvent && !window.opera);
+    var wk = /webkit\/(\d+)/i.test(navigator.userAgent) && (RegExp.$1 < 525);
+    var fn = [];
+    var run = function () {
+        for (var i = 0; i < fn.length; i++) fn[i]();
+    };
+    var d = document;
+    d.ready = function (f) {
+        if (!ie && !wk && d.addEventListener)
+            return d.addEventListener('DOMContentLoaded', f, false);
+        if (fn.push(f) > 1) return;
+        if (ie)
+            (function () {
+                try {
+                    d.documentElement.doScroll('left');
+                    run();
+                } catch (err) {
+                    setTimeout(arguments.callee, 0);
+                }
+            })();
+        else if (wk)
+            var t = setInterval(function () {
+                if (/^(loaded|complete)$/.test(d.readyState))
+                    clearInterval(t), run();
+            }, 0);
+    };
+})();
 
-      var alt = this.alt;
 
-      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+document.ready(
+    // toggleTheme function.
+    // this script shouldn't be changed.
+    () => {
+        const pagebody = document.getElementsByTagName('body')[0]
 
-      $(this).wrap('<a class="fancybox" href="' + this.src + '" data-fancybox=\"gallery\" data-caption="' + alt + '"></a>')
-    });
+        const default_theme = 'light' // 'dark'
 
-    $(this).find('.fancybox').each(function(){
-      $(this).attr('rel', 'article' + i);
-    });
-  });
+        function setTheme(status = 'light') {
+            if (status === 'dark') {
+                window.sessionStorage.theme = 'dark'
+                pagebody.classList.add('dark-theme');
+                document.getElementById("switch_default").checked = true
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                window.sessionStorage.theme = 'light'
+                pagebody.classList.remove('dark-theme');
+                document.getElementById("switch_default").checked = false
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        };
 
-  if ($.fancybox){
-    $('.fancybox').fancybox();
-  }
-  // Mobile nav
-  var $container = $('#container'),
-    isMobileNavAnim = false,
-    mobileNavAnimDuration = 200;
+        setTheme(window.sessionStorage.theme ?? default_theme)
 
-  var startMobileNavAnim = function(){
-    isMobileNavAnim = true;
-  };
-
-  var stopMobileNavAnim = function(){
-    setTimeout(function(){
-      isMobileNavAnim = false;
-    }, mobileNavAnimDuration);
-  }
-
-  var nav = document.getElementById('main-nav-toggle');
-  nav.onclick = function(){
-    if (isMobileNavAnim) return;
-
-    startMobileNavAnim();
-    $container.toggleClass('mobile-nav-on');
-    stopMobileNavAnim();
-  };
-
-  var wrap = document.getElementById('wrap');
-  wrap.onclick = function(){
-    if (isMobileNavAnim || !$container.hasClass('mobile-nav-on')) return;
-
-    $container.removeClass('mobile-nav-on');
-  };
-
-  // code block copy button
-  var codes = document.getElementsByClassName('code');
-  for (var i = 0; i < codes.length; ++i) {
-    var copy_button = document.createElement('div');
-    copy_button.className = "copy-button";
-    copy_button.innerHTML = "Copy";
-    new ClipboardJS('.copy-button', {
-      target: (trigger) => {
-        return trigger.nextSibling;
-      }
-    });
-    copy_button.onclick = (e) => {
-      var btn = e.target;
-      btn.innerHTML = "Copied!";
-      setTimeout(function() {
-        btn.innerHTML = "Copy";
-      }, 1000);
+        document.getElementsByClassName('toggleBtn')[0].addEventListener('click', () => {
+            window.sessionStorage.theme = window.sessionStorage.theme === 'dark' ? 'light' : 'dark'
+            setTheme(window.sessionStorage.theme)
+            document.getElementById("switch_default").checked = window.sessionStorage.theme === 'light'
+        })
+        document.getElementById('mobile-toggle-theme').addEventListener('click', () => {
+            window.sessionStorage.theme = window.sessionStorage.theme === 'dark' ? 'light' : 'dark'
+            setTheme(window.sessionStorage.theme)
+            document.getElementById("mobile-toggle-theme").innerText = window.sessionStorage.theme === 'light' ? "· Light" : "· Dark"
+        })
     }
-    codes[i].parentElement.insertBefore(copy_button, codes[i]);
-  }
-
-})(jQuery);
+);
